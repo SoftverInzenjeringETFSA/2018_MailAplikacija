@@ -1,5 +1,4 @@
 import React from "react";
-import styles from './Help.css';
 
 
 export const Help = (props) => {

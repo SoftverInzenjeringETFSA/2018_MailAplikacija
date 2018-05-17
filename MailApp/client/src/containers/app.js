@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Help from '../components/help';
-import FolderPage from '../components/folderPage'
+import FolderPage from '../components/folderPage';
 
 class App extends Component {
   constructor(){
@@ -39,12 +39,13 @@ class App extends Component {
                 <span className="navbar-toggler-icon"></span>
               </button>
               <div className="collapse navbar-collapse" id="navbarNav">
+                <br/>
                 <ul className="navbar-nav">
                   <li className="nav-item active">
-                    <a className="nav-link" onClick={this.onChangeFoldersMounted.bind(this)}>Folders</a>
+                      <a className="nav-link" onClick={this.onChangeFoldersMounted.bind(this)}><i className="fas fa-folder-open margin-right"></i>Folders</a>
                   </li>
                   <li className="nav-item active">
-                    <a className="nav-link" onClick={this.onChangeHelpMounted.bind(this)}>Help</a>
+                    <a className="nav-link" onClick={this.onChangeHelpMounted.bind(this)}><i className="fas fa-question margin-right"></i>Help</a>
                   </li>
                 </ul>
               </div>

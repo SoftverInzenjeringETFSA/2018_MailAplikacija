@@ -5,25 +5,59 @@ class FolderPage extends Component {
     constructor(){
         super();
         this.state = {
-            folderNames : [] 
+            folders : [],
+            apiLoaded:false
         }
     }
-    deleteFolder(index,e){
-        const folders = Object.assign([], this.state.folderNames);
-        folders.splice(index, 1);
-        this.setState({
-            folderNames: folders
-        });
+    getAllFolders(){
+        fetch('http://localhost:8080/api/categories')
+        .then(res => res.json())
+            .then((categories) => {
+                    this.setState((prevState) => {
+                        return {
+                            folders: categories,
+                            apiLoaded: true
+                    }
+                }
+            )}
+        )
     }
-    saveChanges(){
-        var newArray = [...this.state.folderNames];
-        newArray.push(this.newText.value); 
-        this.newText.value ="";
-        this.setState({
-            folderNames: newArray
-        });
+    componentDidMount(){
+        this.getAllFolders();
+    }
+    deleteFolder(index,e){
+        fetch('http://localhost:8080/api/category/'+index,{
+            method: 'DELETE',
+            headers: {"Content-Type" : "application/json"}
+        }).then((res) => {
+            if(res.status===200)
+                this.getAllFolders();
+        })
+    }
+    addNewFolder(){
+        fetch('http://localhost:8080/api/addCategory', {
+            method: 'POST',
+            body: JSON.stringify({
+              categoryName: this.newText.value
+            }),
+            headers: {"Content-Type" : "application/json"}
+          }).then((res) => {
+            if(res.status===200)
+                this.getAllFolders();
+        })
     }
     render() {
+        let data = "";
+        if(this.state.apiLoaded){
+            data = this.state.folders.map((folder) => {
+                var _id = folder._id;
+                return (<FolderItem folderName={folder.categoryName}
+                                    key = {folder._id}
+                                    folderId = {folder._id}
+                                    deleteFolder={this.deleteFolder.bind(this, _id)}>  
+                        </FolderItem>)
+            })
+        }
         return (
             <div>
                 <h1>Folders</h1>
@@ -44,7 +78,7 @@ class FolderPage extends Component {
                                 <input type="text" name="folderName" ref={(ip) => {this.newText = ip}}/>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-primary" data-dismiss="modal" onClick={this.saveChanges.bind(this)}>Save folder</button>
+                                <button type="button" className="btn btn-primary" data-dismiss="modal" onClick={this.addNewFolder.bind(this)}>Save folder</button>
                                 <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
                             </div>
                         </div>
@@ -52,14 +86,7 @@ class FolderPage extends Component {
                 </div>
                 <hr/>
                 <ul>
-                {this.state.folderNames.map((folder,i) => {
-                    return (<FolderItem folderName={folder}
-                                        key = {i}
-                                        deleteFolder={this.deleteFolder.bind(this, i)}>  
-                            </FolderItem>)
-
-                })}
-                
+                    {data}
               </ul>
             </div>
         );
