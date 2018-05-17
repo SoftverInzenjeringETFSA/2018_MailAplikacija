@@ -1,4 +1,5 @@
 BG_DATASET_PATH = 'Data/BG'
+ENRON_DATASET_HAM_PATH = 'Data/enron1/ham'
 ENRON_DATASET_PATH = 'Data/enron1'
 TOP_N = 35
 STOP_WORDS = {

@@ -42,26 +42,30 @@ def filter_words(dictionary):
     return dictionary
 
 
-def extract_bg_words(path):
-    def get_email_content(lines):
-        return lines[(lines.index("\n") + 1):] if "\n" in lines else []
+def remove_non_alphanum(lowered):
+    return [re.sub('[^a-z]+', ' ', line) for line in lowered]
 
-    def remove_non_alphanum(lowered):
-        return [re.sub('[^a-z]+', ' ', line) for line in lowered]
 
-    def get_word_dict(line):
-        dictionary = dict()
-        for word in line.split():
-            dictionary[word] = (dictionary[word][0] + 1, 1) if word in dictionary else (1, 1)
-        return dictionary
+def get_word_dict(line):
+    dictionary = dict()
+    for word in line.split():
+        dictionary[word] = (dictionary[word][0] + 1, 1) if word in dictionary else (1, 1)
+    return dictionary
 
-    def get_word_dict_from_lines(lines):
-        return reduce(union_dicts, map(get_word_dict, [line for line in lines]))
 
+def get_word_dict_from_lines(lines):
+    return reduce(union_dicts, map(get_word_dict, [line for line in lines]))
+
+
+def get_bg_email_content(lines):
+    return lines[(lines.index("\n") + 1):] if "\n" in lines else []
+
+
+def extract_words(path, content_extractor):
     with open(path, encoding='ascii', errors='ignore') as f:
         raw_lines = f.readlines()
         # Content starts from newline
-        content = get_email_content(raw_lines)
+        content = content_extractor(raw_lines)
 
         if len(content) == 0:
             return dict()
@@ -79,19 +83,25 @@ def preprocess_bg():
     def get_word_dict():
         files = list(get_txts_recursive(dm.BG_DATASET_PATH))
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            word_dict = reduce(union_dicts, executor.map(extract_bg_words, files))
+            word_dict = reduce(union_dicts, executor.map(lambda path: extract_words(path, get_bg_email_content), files))
             return word_dict
 
     return filter_words(get_word_dict())
 
 
-def seq_preprocess_bg():
-    for file in get_txts_recursive(dm.BG_DATASET_PATH):
-        extract_bg_words(file)
+def get_enron_email_content(lines):
+    return lines[1:]
 
 
 def preprocess_enron():
-    pass
+    def get_word_dict():
+        files = list(get_txts_recursive(dm.ENRON_DATASET_HAM_PATH))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            word_dict = reduce(union_dicts,
+                               executor.map(lambda path: extract_words(path, get_enron_email_content), files))
+            return word_dict
+
+    return filter_words(get_word_dict())
 
 
 def top_n_words(word_dict, n):
@@ -101,17 +111,43 @@ def top_n_words(word_dict, n):
 def analyze_dict(top):
     words = dict()
     for entry in top:
-        entry = entry[0]
-        words[entry[1]] = entry[0] 
+        entry = (entry[0][0], entry[1])
+        words[entry[1]] = entry[0]
     plt.bar(np.arange(len(top)), list(words.values()))
     plt.xticks(np.arange(len(top)), words.keys())
     plt.show()
 
 
-def preprocess():
+def tf(word_freq_dict):
+    unique_word_count = len(word_freq_dict)
+    tf_dict = dict()
+    for entry in word_freq_dict:
+        tf_dict[entry[1]] = entry[0][0] / unique_word_count
+    return tf_dict
+
+
+def idf(word_freq_dict, doc_cnt):
+    idf_dict = dict()
+    for entry in word_freq_dict:
+        idf_dict[entry[1]] = np.log10(doc_cnt / entry[0][1])
+    return idf_dict
+
+
+def preprocess_spam(analyze=False):
     word_dict = preprocess_bg()
-    print(len(word_dict))
-    top = top_n_words(word_dict, dm.TOP_N)
-    print(list(map(lambda x: x[1], top)))
-    print(word_dict)
-    analyze_dict(top)
+    if analyze:
+        top = top_n_words(word_dict, dm.TOP_N)
+        print(len(word_dict))
+        print(list(map(lambda x: x[1], top)))
+        print(word_dict)
+        analyze_dict(top)
+
+
+def preprocess_ham(analyze=False):
+    word_dict = preprocess_enron()
+    if analyze:
+        top = top_n_words(word_dict, dm.TOP_N)
+        print(len(word_dict))
+        print(list(map(lambda x: x[1], top)))
+        print(word_dict)
+        analyze_dict(top)
