@@ -1,6 +1,6 @@
-import concurrent.futures
 import os
 import re
+import concurrent.futures
 import matplotlib.pyplot as plt
 import numpy as np
 import datameta as dm
@@ -24,14 +24,13 @@ def union_sets(x, y):
 
 
 def union_dicts(x, y):
-    if len(x) == 0:
+    if not x:
         return y
-    elif len(y) == 0:
+    elif not y:
         return x
-    else:
-        for k, v in y.items():
-            x[k] = x[k] + v if k in x else v
-        return x
+    for k, v in y.items():
+        x[k] = (x[k][0] + v[0], x[k][1] + v[1]) if k in x else v
+    return x
 
 
 def filter_words(dictionary):
@@ -53,7 +52,7 @@ def extract_bg_words(path):
     def get_word_dict(line):
         dictionary = dict()
         for word in line.split():
-            dictionary[word] = dictionary[word] + 1 if word in dictionary else 1
+            dictionary[word] = (dictionary[word][0] + 1, 1) if word in dictionary else (1, 1)
         return dictionary
 
     def get_word_dict_from_lines(lines):
@@ -66,8 +65,6 @@ def extract_bg_words(path):
 
         if len(content) == 0:
             return dict()
-
-        # content = reduce(lambda x, y: x + y, content)
 
         # Strip tags
         stripped_tags = map(strip_html_tags, content)
@@ -103,8 +100,9 @@ def top_n_words(word_dict, n):
 
 def analyze_dict(top):
     words = dict()
-    for v in top:
-        words[v[1]] = v[0]
+    for entry in top:
+        entry = entry[0]
+        words[entry[1]] = entry[0] 
     plt.bar(np.arange(len(top)), list(words.values()))
     plt.xticks(np.arange(len(top)), words.keys())
     plt.show()
@@ -115,4 +113,5 @@ def preprocess():
     print(len(word_dict))
     top = top_n_words(word_dict, dm.TOP_N)
     print(list(map(lambda x: x[1], top)))
+    print(word_dict)
     analyze_dict(top)
