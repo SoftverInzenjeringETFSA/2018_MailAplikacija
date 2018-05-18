@@ -61,22 +61,25 @@ def get_bg_email_content(lines):
     return lines[(lines.index("\n") + 1):] if "\n" in lines else []
 
 
-def extract_words(path, content_extractor):
+def extract_from_lines(raw_lines, content_extractor):
+    content = content_extractor(raw_lines)
+
+    if len(content) == 0:
+        return dict()
+
+    # Strip tags
+    stripped_tags = map(strip_html_tags, content)
+    # To lower
+    lowered_lines = [line.lower() for line in stripped_tags]
+    alphanum_lines = remove_non_alphanum(lowered_lines)
+    word_dict = get_word_dict_from_lines(alphanum_lines)
+    return word_dict
+
+
+def extract_words(path, content_extractor=lambda identity: identity):
     with open(path, encoding='ascii', errors='ignore') as f:
         raw_lines = f.readlines()
-        # Content starts from newline
-        content = content_extractor(raw_lines)
-
-        if len(content) == 0:
-            return dict()
-
-        # Strip tags
-        stripped_tags = map(strip_html_tags, content)
-        # To lower
-        lowered_lines = [line.lower() for line in stripped_tags]
-        alphanum_lines = remove_non_alphanum(lowered_lines)
-        word_dict = get_word_dict_from_lines(alphanum_lines)
-        return word_dict
+        return extract_from_lines(raw_lines, content_extractor)
 
 
 def preprocess_bg():
@@ -116,21 +119,6 @@ def analyze_dict(top):
     plt.bar(np.arange(len(top)), list(words.values()))
     plt.xticks(np.arange(len(top)), words.keys())
     plt.show()
-
-
-def tf(word_freq_dict):
-    unique_word_count = len(word_freq_dict)
-    tf_dict = dict()
-    for entry in word_freq_dict:
-        tf_dict[entry[1]] = entry[0][0] / unique_word_count
-    return tf_dict
-
-
-def idf(word_freq_dict, doc_cnt):
-    idf_dict = dict()
-    for entry in word_freq_dict:
-        idf_dict[entry[1]] = np.log10(doc_cnt / entry[0][1])
-    return idf_dict
 
 
 def preprocess_spam(analyze=False):

@@ -1,12 +1,12 @@
 from flask import Flask
 from flask import request
-import data
+import spam
 
 app = Flask('lobster')
 
 
 def setup():
-    data.preprocess()
+    classifier = spam.Classifier()
 
 
 @app.route('/spamorham', methods=['POST'])
