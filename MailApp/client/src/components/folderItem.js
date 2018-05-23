@@ -42,7 +42,29 @@ class FolderItem extends Component {
                         <span> {this.props.folderName} </span>
                     </div>
                     <div className="col-xs-6 col-md-4">
-                        <button className="btn btn-danger btn-sm" onClick={this.props.deleteFolder}>Delete</button>
+                        <button type="button" className="btn btn-danger btn-sm" data-toggle="modal" data-target="#Modal">
+                            Delete
+                        </button>
+                        <div className="modal fade" id="Modal" tabIndex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
+                            <div className="modal-dialog">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h4 className="modal-title" id="myModalLabel">Delete folder</h4>
+                                        <button type="button" className="close" data-dismiss="modal">
+                                            <span aria-hidden="true">&times;</span>
+                                            <span className="sr-only">Close</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <p>Are you sure you want to delete folder along with its content?</p>
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-primary" data-dismiss="modal" onClick={this.props.deleteFolder}>Delete folder</button>
+                                        <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                     {emailComponent}

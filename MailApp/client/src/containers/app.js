@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Help from '../components/help';
 import FolderPage from '../components/folderPage';
+import style from './app.css'
 
 class App extends Component {
   constructor(){
